@@ -1,0 +1,8 @@
+.env
+storage/bronze/*
+storage/silver/*
+storage/gold/*
+!storage/**/.gitkeep
+__pycache__/
+*.pyc
+.pytest_cache/

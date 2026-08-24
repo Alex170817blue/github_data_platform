@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "github-data-platform"
+version = "0.1.0"
+description = "Nightly ETL pipeline for GitHub engineering metrics"
+authors = ["Alex"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+prefect = "^3.0"
+httpx = "^0.27"
+pandas = "^2.2"
+pyarrow = "^17.0"
+python-dotenv = "^1.0"
+fastapi = "0.115.6"
+starlette = "0.41.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

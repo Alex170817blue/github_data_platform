@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    ports:
+      - "4200:4200"   # Prefect UI (Fase 4)
+      - "8000:8000"   # FastAPI (Fase 5)
