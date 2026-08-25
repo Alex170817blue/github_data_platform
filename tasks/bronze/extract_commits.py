@@ -18,6 +18,12 @@ def extract_commits(full_name: str) -> Path:
 
     safe_name = full_name.replace("/", "_")
     output_path = output_dir / f"{safe_name}.json"
-    output_path.write_text(json.dumps(commits, indent=2))
+
+    payload = {
+        "repo_full_name": full_name,
+        "extracted_at": datetime.now(timezone.utc).isoformat(),
+        "data": commits,
+    }
+    output_path.write_text(json.dumps(payload, indent=2))
 
     return output_path

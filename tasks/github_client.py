@@ -27,6 +27,11 @@ class GithubClient:
             params["since"] = since
 
         response = self._client.get(f"/repos/{full_name}/commits", params=params)
+
+        if response.status_code == 409:
+            # Repository vuoto (nessun commit) GitHub restituisce 409 invece di lista vuota
+            return []
+
         response.raise_for_status()
         return response.json()
 
