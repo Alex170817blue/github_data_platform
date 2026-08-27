@@ -42,3 +42,24 @@ class GithubClient:
         )
         response.raise_for_status()
         return response.json()
+
+    def get_pull_request_commits(self, full_name: str, pr_number: int) -> list[dict]:
+        response = self._client.get(
+            f"/repos/{full_name}/pulls/{pr_number}/commits",
+            params={"per_page": 100},
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def get_workflow_runs(self, full_name: str) -> list[dict]:
+        response = self._client.get(
+            f"/repos/{full_name}/actions/runs",
+            params={"per_page": 100},
+        )
+
+        if response.status_code == 404:
+            # Actions non abilitate o repository senza workflow 
+            return []
+
+        response.raise_for_status()
+        return response.json().get("workflow_runs", [])
