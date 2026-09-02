@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 import pandas as pd
@@ -11,8 +10,9 @@ SILVER_PATH = Path("storage/silver/lead_times.parquet")
 
 @task
 def build_lead_times(bronze_dt: str) -> Path:
-    commit_files = Path(f"storage/bronze/pull_request_commits/dt={bronze_dt}").glob("*.json")
-    pr_events_path = pd.read_parquet("storage/silver/pull_request_events.parquet")
+    commit_files = list(Path(f"storage/bronze/pull_request_commits/dt={bronze_dt}").glob("*.json"))
+
+    pr_events_path = Path("storage/silver/pull_request_events.parquet")
 
     if not commit_files or not pr_events_path.exists():
         return SILVER_PATH
@@ -22,6 +22,7 @@ def build_lead_times(bronze_dt: str) -> Path:
 
     rows = []
     for file in commit_files:
+        import json
         payload = json.loads(file.read_text())
         repo_full_name = payload["repo_full_name"]
         pr_number = payload["pr_number"]
