@@ -17,8 +17,6 @@ services:
       - .env
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
-    ports:
-      - "8000:8000"
     depends_on:
       - prefect-server
 
@@ -31,6 +29,16 @@ services:
       - .env
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
+    depends_on:
+      - prefect-server
+
+  api:
+    build: .
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
     depends_on:
       - prefect-server
 
