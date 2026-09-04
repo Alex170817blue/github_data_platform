@@ -1,0 +1,16 @@
+from fastapi import FastAPI
+
+from api.routers import metrics
+
+app = FastAPI(
+    title="GitHub Engineering Data Platform API",
+    description="Exposes Gold-layer engineering metrics derived from GitHub activity.",
+    version="0.1.0",
+)
+
+app.include_router(metrics.router)
+
+
+@app.get("/health", tags=["health"])
+def health_check():
+    return {"status": "ok"}

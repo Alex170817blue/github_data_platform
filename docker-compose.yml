@@ -17,6 +17,8 @@ services:
       - .env
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
+    ports:
+      - "8000:8000"
     depends_on:
       - prefect-server
 
