@@ -42,5 +42,16 @@ services:
     depends_on:
       - prefect-server
 
+  dashboard:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    volumes:
+      - ./dashboard:/app
+      - dashboard-node-modules:/app/node_modules
+    ports:
+      - "5173:5173"
+
 volumes:
   prefect-data:
+  dashboard-node-modules:
