@@ -1,27 +1,9 @@
 name: github-data-platform
-prefect-version: 3.0.0
-
-pull:
-- prefect.deployments.steps.set_working_directory:
-    directory: /app
 
 deployments:
-- name: nightly-pipeline
-  entrypoint: flows/run_pipeline.py:run_pipeline_flow
-  work_pool:
-    name: default-pool
-    work_queue_name:
-    job_variables: {}
-  schedule:
-    cron: 0 2 * * *
-    timezone: Europe/Rome
-  version:
-  tags: []
-  concurrency_limit:
-  description:
-  parameters: {}
-  schedules:
-  - cron: 0 2 * * *
-    timezone: Europe/Rome
-    day_or: true
-    active: true
+  - name: run-full-pipeline
+    entrypoint: flows/run_pipeline.py:run_pipeline_flow
+    work_pool:
+      name: default-pool
+      job_variables:
+        working_dir: /app

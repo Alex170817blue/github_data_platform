@@ -1,13 +1,14 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir poetry
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml ./
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-root --no-interaction --no-ansi || true
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["tail", "-f", "/dev/null"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

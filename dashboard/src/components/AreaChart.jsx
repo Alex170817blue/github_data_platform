@@ -1,6 +1,6 @@
 import {
-  LineChart,
-  Line,
+  AreaChart as RechartsAreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -9,14 +9,14 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-export default function ActivityChart({ data }) {
+export function WeeklyTrendChart({ data }) {
   if (!data || data.length === 0) {
-    return <p>No activity data yet.</p>;
+    return <p>No weekly activity data yet.</p>;
   }
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
+      <RechartsAreaChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
 
         <XAxis dataKey="period_start" />
@@ -27,12 +27,12 @@ export default function ActivityChart({ data }) {
 
         <Legend />
 
-        <Line
+        <Area
           type="monotone"
           dataKey="commits_count"
-          name="Commits"
+          name="Activity"
         />
-      </LineChart>
+      </RechartsAreaChart>
     </ResponsiveContainer>
   );
 }
