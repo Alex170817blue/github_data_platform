@@ -529,14 +529,9 @@ def get_lead_time(
 
 @router.get("/repositories")
 def get_repository_metrics():
-    """
-    Repository metrics derived from real Silver datasets.
-    """
-
     snapshots = read_parquet(
         SILVER_DIR / "repository_snapshots.parquet"
     )
-
     commits = read_parquet(
         SILVER_DIR / "commits.parquet"
     )
@@ -547,13 +542,13 @@ def get_repository_metrics():
             "repositories": [],
         }
 
-    # Latest snapshot per repository.
     if "full_name" not in snapshots.columns:
         return {
             "total_repositories": 0,
             "repositories": [],
         }
 
+    # Keep only the latest snapshot for each repository.
     latest = snapshots.copy()
 
     if "snapshot_date" in latest.columns:
@@ -563,15 +558,20 @@ def get_repository_metrics():
         )
 
         latest = (
-            latest.sort_values("snapshot_date")
+            latest
+            .sort_values("snapshot_date")
             .groupby("full_name", as_index=False)
             .tail(1)
         )
 
-    # Commit counts per repository.
-    if not commits.empty and "repo_full_name" in commits.columns:
+    # Count real commits from Silver.
+    if (
+        not commits.empty
+        and "repo_full_name" in commits.columns
+    ):
         commit_counts = (
-            commits.groupby("repo_full_name")
+            commits
+            .groupby("repo_full_name")
             .size()
             .reset_index(name="commits")
         )
@@ -580,20 +580,51 @@ def get_repository_metrics():
             columns=["repo_full_name", "commits"]
         )
 
-    result = latest.copy()
-
-    result = result.merge(
+    result = latest.merge(
         commit_counts,
         left_on="full_name",
         right_on="repo_full_name",
         how="left",
     )
 
+    # Numeric metrics.
     result["commits"] = (
-        result["commits"]
+        pd.to_numeric(result["commits"], errors="coerce")
         .fillna(0)
         .astype(int)
     )
+
+    for column in [
+        "stars",
+        "forks",
+        "open_issues",
+    ]:
+        if column in result.columns:
+            result[column] = (
+                pd.to_numeric(
+                    result[column],
+                    errors="coerce",
+                )
+                .fillna(0)
+                .astype(int)
+            )
+
+    # Normalize language.
+    if "primary_language" in result.columns:
+        result["primary_language"] = (
+            result["primary_language"]
+            .replace(0, pd.NA)
+            .replace("", pd.NA)
+            .fillna("Unknown")
+        )
+
+    # Keep is_private as a boolean.
+    if "is_private" in result.columns:
+        result["is_private"] = (
+            result["is_private"]
+            .fillna(False)
+            .astype(bool)
+        )
 
     columns = [
         "full_name",
@@ -621,17 +652,14 @@ def get_repository_metrics():
         }
     )
 
+    # Convert timestamps to JSON-compatible strings.
     for column in result.columns:
         if pd.api.types.is_datetime64_any_dtype(
             result[column]
         ):
             result[column] = result[column].astype(str)
 
-    result = result.fillna(0)
-
-    repositories = result.to_dict(
-        orient="records"
-    )
+    repositories = result.to_dict(orient="records")
 
     return {
         "total_repositories": len(repositories),

@@ -48,3 +48,7 @@ export async function getActivityTrend(granularity = 'weekly') {
   return response.data;
 }
 
+export async function getRepositoryMetrics() {
+  const response = await client.get('/metrics/repositories');
+  return response.data;
+}

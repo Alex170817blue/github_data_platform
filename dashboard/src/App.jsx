@@ -5,12 +5,14 @@ import PRStatusChart from './components/PieChart';
 import { WeeklyTrendChart } from './components/AreaChart';
 import ContributorChart from './components/BarChart';
 import StatsCards from './components/StatsCards';
+import RepositoryTable from './components/RepositoryTable';
 
 import {
   getSummaryMetrics,
   getContributorActivity,
   getContributorStats,
   getPRStats,
+  getRepositoryMetrics,
 } from './api';
 
 import './App.css';
@@ -20,6 +22,7 @@ export default function Dashboard() {
   const [activity, setActivity] = useState([]);
   const [contributors, setContributors] = useState([]);
   const [prs, setPrs] = useState([]);
+  const [repositories, setRepositories] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,17 +35,20 @@ export default function Dashboard() {
           activityData,
           contributorData,
           prData,
+          repositoryData,
         ] = await Promise.all([
           getSummaryMetrics(),
           getContributorActivity('weekly'),
           getContributorStats(),
           getPRStats(),
+          getRepositoryMetrics(),
         ]);
 
         setMetrics(summary);
         setActivity(activityData);
         setContributors(contributorData);
         setPrs(prData);
+        setRepositories(repositoryData.repositories);
       } catch (err) {
         console.error('Dashboard data loading failed:', err);
         setError(err.message);
@@ -83,6 +89,11 @@ export default function Dashboard() {
       <h1>GitHub Engineering Dashboard</h1>
 
       <StatsCards data={metrics} />
+
+      <div className="chart-card full-width">
+        <h3>Repository</h3>
+        <RepositoryTable data={repositories} />
+      </div>
 
       <div className="charts-grid">
         <div className="chart-card full-width">
