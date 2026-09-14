@@ -31,6 +31,8 @@ export default function ActivityChart({ data }) {
           type="monotone"
           dataKey="commits_count"
           name="Commits"
+          stroke="#FF5F1F"
+          fill="#FFCE1F"
         />
       </LineChart>
     </ResponsiveContainer>

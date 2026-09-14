@@ -31,6 +31,8 @@ export function WeeklyTrendChart({ data }) {
           type="monotone"
           dataKey="commits_count"
           name="Activity"
+          stroke="#FF5F1F"
+          fill="#FFCE1F"
         />
       </RechartsAreaChart>
     </ResponsiveContainer>

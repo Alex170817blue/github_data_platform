@@ -1,4 +1,3 @@
-// BarChart.jsx
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function ContributorChart({ data }) {
@@ -47,8 +46,8 @@ export default function ContributorChart({ data }) {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Bar dataKey="commits" fill="#82ca9d" name="Commits" />
-        <Bar dataKey="prs" fill="#8884d8" name="Pull Requests" />
+        <Bar dataKey="commits" fill="#FF5F1F" name="Commits" />
+        <Bar dataKey="prs" fill="#FFCE1F" name="Pull Requests" />
       </RechartsBarChart>
     </ResponsiveContainer>
   );

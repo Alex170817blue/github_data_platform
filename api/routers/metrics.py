@@ -12,21 +12,15 @@ BRONZE_DIR = STORAGE_DIR / "bronze"
 SILVER_DIR = STORAGE_DIR / "silver"
 GOLD_DIR = STORAGE_DIR / "gold"
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
+#HELPER
 def read_parquet(path: Path) -> pd.DataFrame:
-    """Read a parquet file or return an empty DataFrame if it doesn't exist."""
     if not path.exists():
         return pd.DataFrame()
 
     return pd.read_parquet(path)
 
-
+#READER BRONZE PULL REQUESTS
 def read_bronze_pull_requests() -> list[dict]:
-    """Read all Bronze pull-request JSON files."""
     rows = []
 
     prs_dir = BRONZE_DIR / "pull_requests"
@@ -38,7 +32,6 @@ def read_bronze_pull_requests() -> list[dict]:
         try:
             payload = json.loads(path.read_text())
 
-            # Historical files may contain a list directly.
             if isinstance(payload, list):
                 data = payload
 
@@ -68,17 +61,9 @@ def empty_response(message: str) -> dict:
         "message": message,
     }
 
-
-# ---------------------------------------------------------------------------
-# Summary
-# ---------------------------------------------------------------------------
-
+#SUMMARY METRICS
 @router.get("/summary")
 def get_summary_metrics():
-    """
-    High-level engineering metrics calculated from real pipeline data.
-    """
-
     commits = read_parquet(SILVER_DIR / "commits.parquet")
     prs = read_bronze_pull_requests()
 
@@ -130,10 +115,7 @@ def get_summary_metrics():
         "avg_commits_per_week": avg_commits_per_week,
     }
 
-# ---------------------------------------------------------------------------
-# Contributor activity
-# ---------------------------------------------------------------------------
-
+#CONTRIBUTOR ACTIVITY
 @router.get("/contributor-activity")
 def get_contributor_activity(
     granularity: str = Query(
@@ -141,11 +123,6 @@ def get_contributor_activity(
         pattern="^(weekly|monthly)$",
     )
 ):
-    """
-    Contributor activity from Gold layer.
-
-    Returns one row per repository/contributor/period.
-    """
 
     filename = (
         "contributor_activity_weekly.parquet"
@@ -200,10 +177,7 @@ def get_contributor_activity(
     return result.to_dict(orient="records")
 
 
-# ---------------------------------------------------------------------------
-# Activity trend
-# ---------------------------------------------------------------------------
-
+#ACTIVITY TREND
 @router.get("/activity-trend")
 def get_activity_trend(
     granularity: str = Query(
@@ -211,12 +185,6 @@ def get_activity_trend(
         pattern="^(weekly|monthly)$",
     )
 ):
-    """
-    Total commit activity aggregated by time period.
-
-    Aggregation is performed from the Gold contributor-activity dataset,
-    so the frontend receives presentation-ready data.
-    """
 
     filename = (
         "contributor_activity_weekly.parquet"
@@ -260,15 +228,9 @@ def get_activity_trend(
 
     return result.to_dict(orient="records")
 
-# ---------------------------------------------------------------------------
-# Contributors
-# ---------------------------------------------------------------------------
-
+#CONTRIBUTORS
 @router.get("/contributors")
 def get_contributors():
-    """
-    Contributor statistics calculated from Silver commits.
-    """
 
     commits = read_parquet(SILVER_DIR / "commits.parquet")
 
@@ -312,15 +274,9 @@ def get_contributors():
     ]
 
 
-# ---------------------------------------------------------------------------
-# Pull requests
-# ---------------------------------------------------------------------------
-
+#PULL REQUESTS
 @router.get("/pull-requests")
 def get_pull_requests():
-    """
-    Pull-request counts from real Bronze data.
-    """
 
     prs = read_bronze_pull_requests()
 
@@ -333,7 +289,7 @@ def get_pull_requests():
     for pr in prs:
         state = str(pr.get("state", "")).lower()
 
-        # GitHub represents merged PRs as closed + merged_at != null.
+        # GitHub represents merged PRs as closed + merged_at != null NOTED
         if pr.get("merged_at"):
             counts["merged"] += 1
         elif state == "open":
@@ -348,10 +304,7 @@ def get_pull_requests():
     ]
 
 
-# ---------------------------------------------------------------------------
-# Deploy frequency
-# ---------------------------------------------------------------------------
-
+#Deploy frequency
 @router.get("/deploy-frequency")
 def get_deploy_frequency(
     granularity: str = Query(
@@ -359,12 +312,6 @@ def get_deploy_frequency(
         pattern="^(daily|weekly|monthly)$",
     )
 ):
-    """
-    Successful deployments calculated from Silver deploy_events.
-
-    At the moment the pipeline may legitimately have no successful
-    deployments. In that case the endpoint returns an empty list.
-    """
 
     deploys = read_parquet(SILVER_DIR / "deploy_events.parquet")
 
@@ -424,10 +371,7 @@ def get_deploy_frequency(
     return result.to_dict(orient="records")
 
 
-# ---------------------------------------------------------------------------
-# Lead time
-# ---------------------------------------------------------------------------
-
+#LEAD TIME METRICS
 @router.get("/lead-time")
 def get_lead_time(
     granularity: str = Query(
@@ -435,12 +379,6 @@ def get_lead_time(
         pattern="^(daily|weekly|monthly)$",
     )
 ):
-    """
-    Lead-time metrics.
-
-    Requires a Silver lead_times dataset generated from PR data.
-    """
-
     lead_times = read_parquet(SILVER_DIR / "lead_times.parquet")
 
     if lead_times.empty:
@@ -523,10 +461,7 @@ def get_lead_time(
     return result.to_dict(orient="records")
 
 
-# ---------------------------------------------------------------------------
-# Repositories
-# ---------------------------------------------------------------------------
-
+#Repositories
 @router.get("/repositories")
 def get_repository_metrics():
     snapshots = read_parquet(
@@ -548,7 +483,7 @@ def get_repository_metrics():
             "repositories": [],
         }
 
-    # Keep only the latest snapshot for each repository.
+    # only the latest snapshot per repository
     latest = snapshots.copy()
 
     if "snapshot_date" in latest.columns:
@@ -564,7 +499,6 @@ def get_repository_metrics():
             .tail(1)
         )
 
-    # Count real commits from Silver.
     if (
         not commits.empty
         and "repo_full_name" in commits.columns
@@ -587,7 +521,7 @@ def get_repository_metrics():
         how="left",
     )
 
-    # Numeric metrics.
+
     result["commits"] = (
         pd.to_numeric(result["commits"], errors="coerce")
         .fillna(0)
@@ -609,7 +543,6 @@ def get_repository_metrics():
                 .astype(int)
             )
 
-    # Normalize language.
     if "primary_language" in result.columns:
         result["primary_language"] = (
             result["primary_language"]
@@ -618,7 +551,6 @@ def get_repository_metrics():
             .fillna("Unknown")
         )
 
-    # Keep is_private as a boolean.
     if "is_private" in result.columns:
         result["is_private"] = (
             result["is_private"]
@@ -652,7 +584,6 @@ def get_repository_metrics():
         }
     )
 
-    # Convert timestamps to JSON-compatible strings.
     for column in result.columns:
         if pd.api.types.is_datetime64_any_dtype(
             result[column]

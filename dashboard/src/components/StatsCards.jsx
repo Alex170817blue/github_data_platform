@@ -22,11 +22,6 @@ export default function StatsCards({ data }) {
     <div className="stats-grid">
       {stats.map((stat) => (
         <div key={stat.label} className="stat-card">
-          {stat.icon && (
-            <div className="stat-icon">
-              {stat.icon}
-            </div>
-          )}
 
           <div className="stat-value">
             {stat.value}

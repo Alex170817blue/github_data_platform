@@ -5,7 +5,7 @@ export default function NoDataMessage({ message = 'No data available', height = 
       justifyContent: 'center', 
       alignItems: 'center', 
       height,
-      color: '#999',
+      color: '#810202',
       fontSize: '14px',
       background: '#fafafa',
       borderRadius: '8px',
